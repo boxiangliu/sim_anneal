@@ -1,15 +1,16 @@
-from utils.utils import read_fasta, cfg_file, load_config, get_mfe, CAI
+from utils.utils import read_fasta, cfg_file, load_config, CAI
 import numpy as np
 from tqdm import tqdm
 import pickle as pkl
 import os
+import subprocess
 from collections import defaultdict
 import pandas as pd
 from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
     scale_color_manual, theme, element_blank
 
 
-class Mutater(object):
+class CAIOptimizer(object):
 
     def __init__(self, mfe_seq, cai_seq):
         assert len(mfe_seq) % 3 == 0
@@ -35,36 +36,45 @@ class Mutater(object):
             mut_seq[start:start + 3] = self.cai_seq[start:start + 3]
         return "".join(mut_seq)
 
+    def get_mfe(self, seq, folding_cmd):
+        cmd = f"echo {seq} | {folding_cmd}"
+        output = subprocess.run(cmd, capture_output=True, shell=True)
+        mfe = output.stdout.decode("utf-8").split("\n")[1].split(" (")[1]
+        return float(mfe.replace(")", ""))
+
 
 class Plotter(object):
 
     def __init__(self, ref_points):
         self.points = {}
-        self.points["Reference"] = (ref_points, "blue")
+        self.points["Reference"] = (ref_points, "blue", "o")
 
-    def add_points(self, points, name, color):
-        self.points[name] = (points, color)
+    def add_points(self, points, name, color, shape):
+        self.points[name] = (points, color, shape)
 
     def plot(self):
         plot_df = defaultdict(list)
         color_map = {}
+        shape_map = {}
         for name in self.points:
-            (points, color) = self.points[name]
+            (points, color, shape) = self.points[name]
 
             plot_df["MFE"] += points["MFE"].tolist()
             plot_df["CAI"] += points["CAI"].tolist()
             plot_df["name"] += [name] * points.shape[0]
             color_map[name] = color
-
+            shape_map[name] = shape
         plot_df = pd.DataFrame(plot_df)
 
-        p = (ggplot(data=plot_df, mapping=aes(x="MFE", y="CAI", color="name"))
+        p = (ggplot(data=plot_df, mapping=aes(x="MFE", y="CAI", color="name", shape="name"))
              + geom_point()
              + theme_bw()
              + scale_color_manual(values=color_map)
+             + scale_shape_manual(values=shape_map)
              + theme(legend_position="top", legend_title=element_blank()))
 
         return p
+
 
 def main():
     # initialize:
@@ -75,12 +85,12 @@ def main():
     cai_calc = CAI(cfg.DATA.RAW.CODON)
 
     # mutate sequence and calculate MFE & CAI:
-    mutater = Mutater(mfe_seq, cai_seq)
+    optimizer = CAIOptimizer(mfe_seq, cai_seq)
     results = dict()
-    for proportion in tqdm(np.arange(0, 1, 0.01)):
-        for seed in np.arange(3):
-            mut_seq = mutater.mutate(proportion, seed=seed)
-            mfe = get_mfe(seq=mut_seq, folding_software=cfg.BIN.LINEARFOLD)
+    for proportion in tqdm(np.arange(0, 1.001, 0.02)):
+        for seed in np.arange(1):
+            mut_seq = optimizer.mutate(proportion, seed=seed)
+            mfe = optimizer.get_mfe(seq=mut_seq, folding_cmd=cfg.BIN.LINEARFOLD)
             cai = cai_calc.get_cai(mut_seq)
             results[(proportion, seed)] = [mut_seq, mfe, cai]
 

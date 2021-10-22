@@ -22,12 +22,6 @@ def read_fasta(file):
                 seqs[id_] = seq
     return seqs
 
-def get_mfe(seq, folding_software):
-    cmd = f"echo {seq} | {folding_software}"
-    output = subprocess.run(cmd, capture_output=True, shell=True)
-    mfe = output.stdout.decode("utf-8").split("\n")[1].split(" (")[1]
-    return float(mfe.replace(")", ""))
-
 
 class CAI(object):
     def __init__(self, codon_path):

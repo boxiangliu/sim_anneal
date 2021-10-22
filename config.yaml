@@ -13,5 +13,5 @@ DATA:
 FIGURE:
   DIR: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/figure/
 BIN:
-  LINEARFOLD: /Users/boxiang/Documents/!-work/Baidu/projects/LinearFold/bin/linearfold_v
-
+  LINEARFOLD: "/Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/scripts/bin/LinearFold_d0_version/linearfold -V -b -1"
+  RNAFOLD: "RNAfold -d0"
