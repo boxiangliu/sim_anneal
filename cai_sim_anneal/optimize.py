@@ -1,10 +1,6 @@
 from collections import defaultdict
 import subprocess
 import os
-import math
-import random
-import ipdb
-import click
 import numpy as np
 from tqdm import tqdm
 from utils.utils import read_fasta, cfg_file, load_config, CAI
