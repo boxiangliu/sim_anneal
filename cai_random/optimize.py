@@ -82,7 +82,7 @@ def main():
     seqs = read_fasta(cfg.DATA.RAW.SPIKE)
     mfe_seq = seqs["lambda_0"]
     cai_seq = seqs["lambda_inf"]
-    cai_calc = CAI(cfg.DATA.RAW.CODON)
+    cai_calc = CAI(cfg.DATA.RAW.CODON_FREQ)
 
     # mutate sequence and calculate MFE & CAI:
     optimizer = CAIOptimizer(mfe_seq, cai_seq)

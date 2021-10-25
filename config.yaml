@@ -4,12 +4,15 @@ DATA:
     # Spike protein:
     SPIKE: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/raw/spike.fasta 
     # Human codon frequencies:
-    CODON: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/raw/codon_usage_freq_table_human.csv
+    CODON_FREQ: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/raw/codon_usage_freq_table_human.csv
+    # Codon table:
+    CODON_TABLE: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/raw/coding_wheel.txt
     # Reference points for making MFE-CAI plot:
     REF_P: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/raw/new_SPIKE_MFE_CAI_curve_human.csv
   PROCESSED:
     DIR: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/processed/
     CAI_RANDOM: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/processed/cai_random/
+    CAI_ANNEAL: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/data/processed/cai_sim_anneal/
 FIGURE:
   DIR: /Users/boxiang/Documents/!-work/Baidu/projects/sim_anneal/figure/
 BIN:
