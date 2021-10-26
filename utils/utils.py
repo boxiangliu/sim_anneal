@@ -70,7 +70,7 @@ class CAI(object):
 
 
 def read_coding_wheel(fn):
-    codon_table = defaultdict(list)
+    codon_table = defaultdict(set)
     with open(fn, "r") as f:
         for line in f:
             split_line = line.strip().split("\t")
@@ -78,5 +78,14 @@ def read_coding_wheel(fn):
             for codon in split_line[1:]:
                 first, second, thirds = codon.split(" ")
                 for third in thirds:
-                    codon_table[aa].append(first + second + third)
+                    codon_table[aa].add(first + second + third)
     return codon_table
+
+def get_equivalent_codons(codon_table):
+    equi_codons = defaultdict(set)
+    for aa, codons in codon_table.items():
+        for codon in codons:
+            equi_codons[codon] = codons - {codon}
+    return equi_codons
+
+

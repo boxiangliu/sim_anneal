@@ -90,7 +90,8 @@ def main():
     for proportion in tqdm(np.arange(0, 1.001, 0.02)):
         for seed in np.arange(1):
             mut_seq = optimizer.mutate(proportion, seed=seed)
-            mfe = optimizer.get_mfe(seq=mut_seq, folding_cmd=cfg.BIN.LINEARFOLD)
+            mfe = optimizer.get_mfe(
+                seq=mut_seq, folding_cmd=cfg.BIN.LINEARFOLD)
             cai = cai_calc.get_cai(mut_seq)
             results[(proportion, seed)] = [mut_seq, mfe, cai]
 

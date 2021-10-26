@@ -1,4 +1,5 @@
 cai_random/.ipynb_checkpoints/
+*/.ipynb_checkpoints/
 .DS_Store
 __pycache__/
 bin/

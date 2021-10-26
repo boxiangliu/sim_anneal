@@ -3,19 +3,36 @@ import subprocess
 import os
 import numpy as np
 from tqdm import tqdm
-from utils.utils import read_fasta, cfg_file, load_config, CAI
+from utils.utils import read_fasta, cfg_file, load_config, CAI, \
+    read_coding_wheel, get_equivalent_codons
+import pickle as pkl
+import dill
+import pandas as pd
+from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
+    scale_color_manual, scale_shape_manual, theme, element_blank
 
 
 class RNA():
 
-    def __init__(self, seq, codon_table, codon_freq):
-        self.codon_table = codon_table
+    def __init__(self, seq, equi_codons, codon_freq, folding_cmd):
+        self.equi_codons = equi_codons
         self.codon_freq = codon_freq
-        self.rna = seq
+        self.folding_cmd = folding_cmd
+
+        self.set_rna(seq)
         self.cai_calc = CAI(codon_freq)
 
-    def get_mfe(self, folding_software):
-        cmd = f"echo {self.rna} | {folding_software}"
+        self.nt_len = len(seq)
+        assert self.nt_len % 3 == 0
+        self.pt_len = len(seq) // 3
+
+    def set_rna(self, seq):
+        seq = seq.upper()
+        seq = seq.replace("T", "U")
+        self.rna = seq
+
+    def get_mfe(self):
+        cmd = f"echo {self.rna} | {self.folding_cmd}"
         output = subprocess.run(cmd, capture_output=True, shell=True)
         mfe = output.stdout.decode("utf-8").split("\n")[1].split(" (")[1]
         return float(mfe.replace(")", ""))
@@ -27,18 +44,22 @@ class RNA():
         return self.get_cai()
 
     def mutate(self):
-        indices = [x for x in range(len(self.protein))]
-        codon_set = [""]
-        while len(codon_set) == 1:
-            index = random.choice(indices)
-            aa = self.protein[index]
-            codon_set = self.codon_table[aa]
 
-        codon = self.rna[index]
-        mutables = [x for x in codon_set if x != codon]
-        mutation = random.choice(mutables)
-        self.rna[index] = mutation
-        print(f"{codon} -> {mutation}")
+        # get equivalent codons:
+        codon_set = {}
+        while len(codon_set) == 0:
+            mut_id = np.random.choice(self.pt_len)  # choose a random codon
+            start = mut_id * 3
+            end = start + 3
+            codon = self.rna[start:end]
+            codon_set = self.equi_codons[codon]
+
+        # mutate:
+        mutation = np.random.choice(list(codon_set))
+        mut_seq = list(self.rna)
+        mut_seq[start:end] = mutation
+        # print(f"{codon} -> {mutation}")
+        self.rna = "".join(mut_seq)
 
 
 class SimAnnealer(object):
@@ -69,7 +90,7 @@ class SimAnnealer(object):
         if alpha != None:
             self.alpha = alpha
         else:
-            if anneal_schedule == "linear":
+            if self.anneal_schedule == "linear":
                 self.alpha = 1 / self.iteration
             else:
                 raise ValueError(
@@ -77,9 +98,9 @@ class SimAnnealer(object):
 
     def update_temperature(self, T):
         if self.anneal_schedule == "linear":
-            T -= alpha
+            T -= self.alpha
         elif self.anneal_schedule == "geometric":
-            T *= alpha
+            T *= self.alpha
         else:
             raise ValueError(f"{method} not yet implemented!")
         return T
@@ -108,22 +129,23 @@ class SimAnnealer(object):
             np.random.seed(self.seed)
 
         old_score = self.model.get_score()
-        old_seq = model.rna
+        old_seq = self.model.rna
         T = 1
         for i in tqdm(range(self.iteration)):
 
-            model.mutate()
-            new_score = model.get_score()
+            self.model.mutate()
+            cai = self.model.get_cai()
+            # mfe = self.model.get_mfe()
+            new_score = cai
 
             if self.better(old_score, new_score) or \
                     (np.random.uniform() <= self.get_prob(old_score, new_score, T)):
-
                 old_score = new_score
-                old_seq = model.rna
-                self.results[(proportion, seed)] = [mut_seq, mfe, cai]
+                old_seq = self.model.rna
+                self.results[i] = {"seq": self.model.rna, "score": new_score, "CAI": cai}
 
             else:
-                model.rna = old_seq
+                self.model.rna = old_seq
 
             T = self.update_temperature(T)
 
@@ -138,31 +160,108 @@ class SimAnnealer(object):
                    "results": self.results}
 
         with open(file, "wb") as f:
-            pkl.dump(results, f)
+            dill.dump(results, f)
 
 
-def run(iteration, objective, factor, anneal_schedule, alpha, seed):
+class Plotter(object):
+
+    def __init__(self, ref_points):
+        self.points = {}
+        self.points["Reference"] = (ref_points, "blue", "o")
+
+    def add_points(self, points, name, color, shape):
+        self.points[name] = (points, color, shape)
+
+    def plot_cai_vs_iteration(self):
+        p = (ggplot(data=self.points["Simulated Annealing"][0],
+                    mapping=aes(x="Iteration", y="CAI"))
+             + geom_point()
+             + theme_bw())
+        return p
+
+    def plot_cai_vs_mfe(self):
+        plot_df = defaultdict(list)
+        color_map = {}
+        shape_map = {}
+        for name in self.points:
+            (points, color, shape) = self.points[name]
+
+            plot_df["MFE"] += points["MFE"].tolist()
+            plot_df["CAI"] += points["CAI"].tolist()
+            plot_df["name"] += [name] * points.shape[0]
+            color_map[name] = color
+            shape_map[name] = shape
+        plot_df = pd.DataFrame(plot_df)
+
+        p = (ggplot(data=plot_df, mapping=aes(x="MFE", y="CAI", color="name", shape="name"))
+             + geom_point()
+             + theme_bw()
+             + scale_color_manual(values=color_map)
+             + scale_shape_manual(values=shape_map)
+             + theme(legend_position="top", legend_title=element_blank()))
+
+        return p
+
+
+# class Plotter(object):
+
+#     def __init__(self, results):
+#         self.results = results
+
+#     def plot_cai_vs_iteration(self):
+#         df = defaultdict(list)
+#         for i, v in self.results.items():
+#             df["Iteration"].append(i)
+#             df["CAI"].append(v[2])
+
+#         df = pd.DataFrame(df)
+#         p = (ggplot(data=df, mapping=aes(x="Iteration", y="CAI"))
+#              + geom_point()
+#              + theme_bw()
+#              + theme(legend_position="top", legend_title=element_blank()))
+#         return p
+
+#     def plot_cai_vs_mfe(self):
+#         df = defaultdict(list)
+#         for i, v in self.results.items():
+#             df["Iteration"].append(i)
+#             df["CAI"].append(v[2])
+#             df["MFE"].append(v[-1])
+
+#         df = pd.DataFrame(df)
+#         p = (ggplot(data=df, mapping=aes(x="MFE", y="CAI"))
+#              + geom_point()
+#              + theme_bw())
+#         return p
+
+
+def run(iteration, objective, factor, anneal_schedule, alpha, seed, out_file):
     cfg = load_config(cfg_file)
     seqs = read_fasta(cfg.DATA.RAW.SPIKE)
     mfe_seq = seqs["lambda_0"]
-    model = RNA(mfe_seq, cfg.DATA.RAW.CODON_TABLE,
-                cfg.DATA.RAW.CODON_FREQ)
 
-    annealer = SimAnnealer(model, iteration=1000, factor=1000, seed=0)
+    codon_table = read_coding_wheel(cfg.DATA.RAW.CODON_TABLE)
+    equi_codons = get_equivalent_codons(codon_table)
+    model = RNA(mfe_seq, equi_codons, cfg.DATA.RAW.CODON_FREQ,
+                folding_cmd=cfg.BIN.RNAFOLD)
+
+    annealer = SimAnnealer(model, iteration=iteration, objective=objective,
+                           factor=factor, anneal_schedule=anneal_schedule, seed=seed)
     print(annealer)
 
     annealer.anneal()
-    annealer.save(cfg.DATA.PROCESSED.CAI_ANNEAL)
+    annealer.save(os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file))
 
 
 def main():
-    iteration = 1000
+    iteration = 50000
     objective = "max"
-    factor = 1000
+    factor = 0.001
     anneal_schedule = "linear"
     alpha = None
     seed = 0
-    run(iteration, objective, factor, anneal_schedule, alpha, seed)
+    out_file = "results.pkl"
+    run(iteration, objective, factor, anneal_schedule, alpha, seed, out_file)
 
 if __name__ == "__main__":
     main()
