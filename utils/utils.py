@@ -24,8 +24,8 @@ def read_fasta(file):
 
 
 class CAI(object):
-    def __init__(self, codon_path):
-        self.codon_path = codon_path
+    def __init__(self, codon_freq):
+        self.codon_freq = codon_freq
         self.nucs = set(["A", "U", "C", "G"])
         self.codon_table, self.max_aa_table = \
             self.parse_codon_table()
@@ -33,7 +33,7 @@ class CAI(object):
     def parse_codon_table(self):
         codon_table = defaultdict()
         max_aa_table = defaultdict(lambda: 0)
-        for index, line in enumerate(open(self.codon_path).readlines()):
+        for index, line in enumerate(open(self.codon_freq).readlines()):
             if index == 0:
                 continue
 
@@ -67,3 +67,25 @@ class CAI(object):
         log_cai = log_cai / protein_length
 
         return np.exp(log_cai)
+
+
+def read_coding_wheel(fn):
+    codon_table = defaultdict(set)
+    with open(fn, "r") as f:
+        for line in f:
+            split_line = line.strip().split("\t")
+            aa = split_line[0]
+            for codon in split_line[1:]:
+                first, second, thirds = codon.split(" ")
+                for third in thirds:
+                    codon_table[aa].add(first + second + third)
+    return codon_table
+
+def get_equivalent_codons(codon_table):
+    equi_codons = defaultdict(set)
+    for aa, codons in codon_table.items():
+        for codon in codons:
+            equi_codons[codon] = codons - {codon}
+    return equi_codons
+
+
