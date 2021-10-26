@@ -3,3 +3,4 @@ cai_random/.ipynb_checkpoints/
 __pycache__/
 bin/
 utils/__pycache__/
+config.yaml

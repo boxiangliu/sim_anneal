@@ -7,7 +7,7 @@ import subprocess
 from collections import defaultdict
 import pandas as pd
 from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
-    scale_color_manual, theme, element_blank
+    scale_color_manual, scale_shape_manual, theme, element_blank
 
 
 class CAIOptimizer(object):
@@ -87,10 +87,10 @@ def main():
     # mutate sequence and calculate MFE & CAI:
     optimizer = CAIOptimizer(mfe_seq, cai_seq)
     results = dict()
-    for proportion in tqdm(np.arange(0, 1.001, 0.02)):
-        for seed in np.arange(1):
+    for proportion in tqdm(np.arange(0, 1.001, 0.01)):
+        for seed in np.arange(50):
             mut_seq = optimizer.mutate(proportion, seed=seed)
-            mfe = optimizer.get_mfe(seq=mut_seq, folding_cmd=cfg.BIN.LINEARFOLD)
+            mfe = optimizer.get_mfe(seq=mut_seq, folding_cmd=cfg.BIN.RNAFOLD)
             cai = cai_calc.get_cai(mut_seq)
             results[(proportion, seed)] = [mut_seq, mfe, cai]
 
@@ -109,7 +109,7 @@ def main():
         cai_random, columns=["proportion", "seed", "MFE", "CAI"])
 
     plotter = Plotter(ref_points)
-    plotter.add_points(cai_random, name="Random Optimization", color="red")
+    plotter.add_points(cai_random, name="Random Optimization", color="red", shape="^")
     p = plotter.plot()
     p.save(os.path.join(cfg.DATA.PROCESSED.CAI_RANDOM, "comparison.pdf"))
 
