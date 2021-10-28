@@ -243,7 +243,6 @@ def run(args):
     alpha = args.alpha
     seed = args.seed
 
-    cfg = load_config(cfg_file)
     seqs = read_fasta(cfg.DATA.RAW.SPIKE)
     mfe_seq = seqs["lambda_0"]
 
@@ -269,6 +268,7 @@ def main():
     # alpha = None
     # seed = 0
     # out_file = "results.pkl"
+    cfg = load_config(cfg_file)
     log_file = os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".log")
     logging.basicConfig(
         level=logging.INFO,
