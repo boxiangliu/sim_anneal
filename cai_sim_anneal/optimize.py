@@ -233,7 +233,7 @@ class Plotter(object):
         return p
 
 
-def run(args):
+def run(args, cfg):
     iteration = args.iteration
     lambda_ = args.lambd
     out_file = args.out_file
