@@ -258,9 +258,8 @@ def run(args, cfg):
     annealer.anneal()
     annealer.save(os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".pkl"))
 
-    results = annealer.results
     ref_points = pd.read_csv(cfg.DATA.RAW.REF_P)
-    sim_anneal = [(k, v["MFE"], v["CAI"]) for k, v in results["results"].items()]
+    sim_anneal = [(k, v["MFE"], v["CAI"]) for k, v in annealer.results.items()]
     sim_anneal = pd.DataFrame(
         sim_anneal, columns=["Iteration", "MFE", "CAI"])
 
