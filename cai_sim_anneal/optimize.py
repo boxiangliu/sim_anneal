@@ -87,7 +87,7 @@ class SimAnnealer(object):
                  anneal_schedule="linear", alpha=None, seed=None):
         self.model = model
         self.iteration = iteration
-        self.labmda_ = lambda_
+        self.lambda_ = lambda_
         self.objective = objective
         self.factor = factor
         self.anneal_schedule = anneal_schedule
@@ -148,13 +148,13 @@ class SimAnnealer(object):
         if self.seed:
             np.random.seed(self.seed)
 
-        old_score = self.model.get_score()
+        old_score = self.model.get_score(self.lambda_)
         old_seq = self.model.rna
         T = 1
         for i in tqdm(range(self.iteration)):
 
             self.model.mutate()
-            mfe, cai, new_score = self.model.get_score(self.labmda_)
+            mfe, cai, new_score = self.model.get_score(self.lambda_)
 
             if self.better(old_score, new_score) or \
                     (np.random.uniform() <= self.get_prob(old_score, new_score, T)):
@@ -162,7 +162,7 @@ class SimAnnealer(object):
                 old_seq = self.model.rna
                 self.results[i] = {"seq": self.model.rna,
                                    "score": new_score, "CAI": cai,
-                                   "MFE": mfe, "lambda": self.labmda_}
+                                   "MFE": mfe, "lambda": self.lambda_}
 
             else:
                 self.model.rna = old_seq
