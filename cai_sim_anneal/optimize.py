@@ -11,6 +11,8 @@ import pandas as pd
 from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
     scale_color_manual, scale_shape_manual, theme, element_blank
 import argparse
+import logging
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("iteration", type=int, help="number of iterations to run")
@@ -148,6 +150,8 @@ class SimAnnealer(object):
         if self.seed:
             np.random.seed(self.seed)
 
+        start = time.time()
+
         mfe, cai, old_score = self.model.get_score(self.lambda_)
         old_seq = self.model.rna
         T = 1
@@ -156,6 +160,10 @@ class SimAnnealer(object):
             self.model.mutate()
             mfe, cai, new_score = self.model.get_score(self.lambda_)
 
+            end = time.time()
+            elapsed = end - start
+            start = end
+
             if self.better(old_score, new_score) or \
                     (np.random.uniform() <= self.get_prob(old_score, new_score, T)):
                 old_score = new_score
@@ -163,9 +171,10 @@ class SimAnnealer(object):
                 self.results[i] = {"seq": self.model.rna,
                                    "score": new_score, "CAI": cai,
                                    "MFE": mfe, "lambda": self.lambda_}
-
+                logging.info(f"ELAPSED: {elapsed}\tSCORE: {score}\tACCEPT: YES\tCAI: {cai}\tMFE: {mfe}")
             else:
                 self.model.rna = old_seq
+                logging.info(f"ELAPSED: {elapsed}\tSCORE: {score}\tACCEPT: NO\tCAI: {cai}\tMFE: {mfe}")
 
             T = self.update_temperature(T)
 
@@ -260,6 +269,12 @@ def main():
     # alpha = None
     # seed = 0
     # out_file = "results.pkl"
+    log_file = os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".log")
+    logging.basicConfig(
+        level=logging.INFO,
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()])
     run(args)
 
 if __name__ == "__main__":
