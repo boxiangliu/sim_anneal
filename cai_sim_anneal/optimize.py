@@ -148,7 +148,7 @@ class SimAnnealer(object):
         if self.seed:
             np.random.seed(self.seed)
 
-        old_score = self.model.get_score(self.lambda_)
+        mfe, cai, old_score = self.model.get_score(self.lambda_)
         old_seq = self.model.rna
         T = 1
         for i in tqdm(range(self.iteration)):
