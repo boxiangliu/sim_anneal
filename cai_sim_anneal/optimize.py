@@ -62,9 +62,6 @@ class RNA():
         score = mfe - self.pt_len * lambda_ * np.log(cai)
         return mfe, cai, score
 
-    def get_score(self):
-        return self.get_cai()
-
     def mutate(self):
 
         # get equivalent codons:
@@ -173,6 +170,7 @@ class SimAnnealer(object):
             T = self.update_temperature(T)
 
     def save(self, file):
+
         results = {"model": self.model,
                    "iteration": self.iteration,
                    "objective": self.objective,
@@ -182,7 +180,7 @@ class SimAnnealer(object):
                    "seed": self.seed,
                    "results": self.results}
 
-        with open(file, "wb") as f:
+        with open(file + ".pkl", "wb") as f:
             dill.dump(results, f)
 
 
