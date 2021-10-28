@@ -27,6 +27,7 @@ parser.add_argument("--anneal_schedule", type=str,
 parser.add_argument("--alpha", type=float,
                     help="scale factor for temperature update", default=None)
 parser.add_argument("--seed", type=int, help="random seed", default=None)
+parser.add_argument("--folding", type=str, help="folding software", default="RNAfold")
 args = parser.parse_args()
 
 
@@ -248,8 +249,10 @@ def run(args, cfg):
 
     codon_table = read_coding_wheel(cfg.DATA.RAW.CODON_TABLE)
     equi_codons = get_equivalent_codons(codon_table)
+
+    folding_cmd = cfg.BIN.RNAFOLD if args.folding == "RNAfold" else cfg.BIN.LINEARFOLD
     model = RNA(mfe_seq, equi_codons, cfg.DATA.RAW.CODON_FREQ,
-                folding_cmd=cfg.BIN.RNAFOLD)
+                folding_cmd=folding_cmd)
 
     annealer = SimAnnealer(model, iteration=iteration, lambda_=lambda_, objective=objective,
                            factor=factor, anneal_schedule=anneal_schedule, seed=seed)
