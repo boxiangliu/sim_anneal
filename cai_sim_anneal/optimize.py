@@ -10,6 +10,22 @@ import dill
 import pandas as pd
 from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
     scale_color_manual, scale_shape_manual, theme, element_blank
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("iteration", type=int, help="number of iterations to run")
+parser.add_argument("lambd", type=float, help="CAI coefficient")
+parser.add_argument("out_file", type=str, help="path to output file")
+parser.add_argument("--objective", type=str,
+                    help="either min or max", default="min")
+parser.add_argument("--factor", type=float,
+                    help="scaling factor for temperature", default=0.001)
+parser.add_argument("--anneal_schedule", type=str,
+                    help="either linear or geometric", default="linear")
+parser.add_argument("--alpha", type=float,
+                    help="scale factor for temperature update", default=None)
+parser.add_argument("--seed", type=int, help="random seed", default=None)
+args = parser.parse_args()
 
 
 class RNA():
@@ -40,6 +56,12 @@ class RNA():
     def get_cai(self):
         return self.cai_calc.get_cai(self.rna)
 
+    def get_score(self, lambda_):
+        mfe = self.get_mfe()
+        cai = self.get_cai()
+        score = mfe - self.pt_len * lambda_ * np.log(cai)
+        return mfe, cai, score
+
     def get_score(self):
         return self.get_cai()
 
@@ -64,10 +86,11 @@ class RNA():
 
 class SimAnnealer(object):
 
-    def __init__(self, model, iteration, objective="max", factor=1000,
+    def __init__(self, model, iteration, lambda_, objective="max", factor=1,
                  anneal_schedule="linear", alpha=None, seed=None):
         self.model = model
         self.iteration = iteration
+        self.labmda_ = lambda_
         self.objective = objective
         self.factor = factor
         self.anneal_schedule = anneal_schedule
@@ -134,15 +157,15 @@ class SimAnnealer(object):
         for i in tqdm(range(self.iteration)):
 
             self.model.mutate()
-            cai = self.model.get_cai()
-            # mfe = self.model.get_mfe()
-            new_score = cai
+            mfe, cai, new_score = self.model.get_score(self.labmda_)
 
             if self.better(old_score, new_score) or \
                     (np.random.uniform() <= self.get_prob(old_score, new_score, T)):
                 old_score = new_score
                 old_seq = self.model.rna
-                self.results[i] = {"seq": self.model.rna, "score": new_score, "CAI": cai}
+                self.results[i] = {"seq": self.model.rna,
+                                   "score": new_score, "CAI": cai,
+                                   "MFE": mfe, "lambda": self.labmda_}
 
             else:
                 self.model.rna = old_seq
@@ -203,39 +226,16 @@ class Plotter(object):
         return p
 
 
-# class Plotter(object):
+def run(args):
+    iteration = args.iteration
+    lambda_ = args.lambd
+    out_file = args.out_file
+    objective = args.objective
+    factor = args.factor
+    anneal_schedule = args.anneal_schedule
+    alpha = args.alpha
+    seed = args.seed
 
-#     def __init__(self, results):
-#         self.results = results
-
-#     def plot_cai_vs_iteration(self):
-#         df = defaultdict(list)
-#         for i, v in self.results.items():
-#             df["Iteration"].append(i)
-#             df["CAI"].append(v[2])
-
-#         df = pd.DataFrame(df)
-#         p = (ggplot(data=df, mapping=aes(x="Iteration", y="CAI"))
-#              + geom_point()
-#              + theme_bw()
-#              + theme(legend_position="top", legend_title=element_blank()))
-#         return p
-
-#     def plot_cai_vs_mfe(self):
-#         df = defaultdict(list)
-#         for i, v in self.results.items():
-#             df["Iteration"].append(i)
-#             df["CAI"].append(v[2])
-#             df["MFE"].append(v[-1])
-
-#         df = pd.DataFrame(df)
-#         p = (ggplot(data=df, mapping=aes(x="MFE", y="CAI"))
-#              + geom_point()
-#              + theme_bw())
-#         return p
-
-
-def run(iteration, objective, factor, anneal_schedule, alpha, seed, out_file):
     cfg = load_config(cfg_file)
     seqs = read_fasta(cfg.DATA.RAW.SPIKE)
     mfe_seq = seqs["lambda_0"]
@@ -245,7 +245,7 @@ def run(iteration, objective, factor, anneal_schedule, alpha, seed, out_file):
     model = RNA(mfe_seq, equi_codons, cfg.DATA.RAW.CODON_FREQ,
                 folding_cmd=cfg.BIN.RNAFOLD)
 
-    annealer = SimAnnealer(model, iteration=iteration, objective=objective,
+    annealer = SimAnnealer(model, iteration=iteration, lambda_=lambda_, objective=objective,
                            factor=factor, anneal_schedule=anneal_schedule, seed=seed)
     print(annealer)
 
@@ -254,14 +254,15 @@ def run(iteration, objective, factor, anneal_schedule, alpha, seed, out_file):
 
 
 def main():
-    iteration = 50000
-    objective = "max"
-    factor = 0.001
-    anneal_schedule = "linear"
-    alpha = None
-    seed = 0
-    out_file = "results.pkl"
-    run(iteration, objective, factor, anneal_schedule, alpha, seed, out_file)
+    # iteration = 50000
+    # lambda_ = 0.5
+    # objective = "min"
+    # factor = 0.001
+    # anneal_schedule = "linear"
+    # alpha = None
+    # seed = 0
+    # out_file = "results.pkl"
+    run(args)
 
 if __name__ == "__main__":
     main()
