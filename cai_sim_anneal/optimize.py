@@ -275,7 +275,7 @@ def main():
         handlers=[
             logging.FileHandler(log_file),
             logging.StreamHandler()])
-    run(args)
+    run(args, cfg)
 
 if __name__ == "__main__":
     main()
