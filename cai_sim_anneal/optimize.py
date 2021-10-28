@@ -27,7 +27,8 @@ parser.add_argument("--anneal_schedule", type=str,
 parser.add_argument("--alpha", type=float,
                     help="scale factor for temperature update", default=None)
 parser.add_argument("--seed", type=int, help="random seed", default=None)
-parser.add_argument("--folding", type=str, help="folding software", default="RNAfold")
+parser.add_argument("--folding", type=str,
+                    help="folding software", default="RNAfold")
 args = parser.parse_args()
 
 
@@ -250,7 +251,13 @@ def run(args, cfg):
     codon_table = read_coding_wheel(cfg.DATA.RAW.CODON_TABLE)
     equi_codons = get_equivalent_codons(codon_table)
 
-    folding_cmd = cfg.BIN.RNAFOLD if args.folding == "RNAfold" else cfg.BIN.LINEARFOLD
+    if args.folding == "RNAfold":
+        folding_cmd = cfg.BIN.RNAFOLD
+    elif args.folding == "LinearFold":
+        folding_cmd = cfg.BIN.LINEARFOLD
+    else:
+        raise ValueError(f"{args.folding} not implemented yet!")
+
     model = RNA(mfe_seq, equi_codons, cfg.DATA.RAW.CODON_FREQ,
                 folding_cmd=folding_cmd)
 
@@ -259,7 +266,8 @@ def run(args, cfg):
     print(annealer)
 
     annealer.anneal()
-    annealer.save(os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".pkl"))
+    annealer.save(os.path.join(
+        cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".pkl"))
 
     ref_points = pd.read_csv(cfg.DATA.RAW.REF_P)
     sim_anneal = [(k, v["MFE"], v["CAI"]) for k, v in annealer.results.items()]
@@ -267,7 +275,8 @@ def run(args, cfg):
         sim_anneal, columns=["Iteration", "MFE", "CAI"])
 
     plotter = Plotter(ref_points)
-    plotter.add_points(sim_anneal, name="Simulated Annealing", color="red", shape="^")
+    plotter.add_points(sim_anneal, name="Simulated Annealing",
+                       color="red", shape="^")
     p = plotter.plot_cai_vs_mfe()
     fig_file = os.path.join(
         cfg.DATA.PROCESSED.CAI_ANNEAL, args.out_file + ".pdf")
