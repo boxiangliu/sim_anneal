@@ -269,7 +269,7 @@ def main():
     # seed = 0
     # out_file = "results.pkl"
     cfg = load_config(cfg_file)
-    log_file = os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".log")
+    log_file = os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, args.out_file + ".log")
     logging.basicConfig(
         level=logging.INFO,
         handlers=[
