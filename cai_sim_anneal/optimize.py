@@ -189,7 +189,7 @@ class SimAnnealer(object):
                    "seed": self.seed,
                    "results": self.results}
 
-        with open(file + ".pkl", "wb") as f:
+        with open(file, "wb") as f:
             dill.dump(results, f)
 
 
@@ -256,7 +256,20 @@ def run(args, cfg):
     print(annealer)
 
     annealer.anneal()
-    annealer.save(os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file))
+    annealer.save(os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".pkl"))
+
+    results = annealer.results
+    ref_points = pd.read_csv(cfg.DATA.RAW.REF_P)
+    sim_anneal = [(k, v["MFE"], v["CAI"]) for k, v in results["results"].items()]
+    sim_anneal = pd.DataFrame(
+        sim_anneal, columns=["Iteration", "MFE", "CAI"])
+
+    plotter = Plotter(ref_points)
+    plotter.add_points(sim_anneal, name="Simulated Annealing", color="red", shape="^")
+    p = plotter.plot_cai_vs_mfe()
+    fig_file = os.path.join(
+        cfg.DATA.PROCESSED.CAI_ANNEAL, args.out_file + ".pdf")
+    p.save(fig_file)
 
 
 def main():
@@ -269,7 +282,8 @@ def main():
     # seed = 0
     # out_file = "results.pkl"
     cfg = load_config(cfg_file)
-    log_file = os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, args.out_file + ".log")
+    log_file = os.path.join(
+        cfg.DATA.PROCESSED.CAI_ANNEAL, args.out_file + ".log")
     logging.basicConfig(
         level=logging.INFO,
         handlers=[
