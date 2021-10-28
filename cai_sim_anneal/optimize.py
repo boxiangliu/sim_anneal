@@ -12,7 +12,7 @@ from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
     scale_color_manual, scale_shape_manual, theme, element_blank
 import argparse
 import logging
-
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument("iteration", type=int, help="number of iterations to run")
