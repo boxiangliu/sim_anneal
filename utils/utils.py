@@ -5,17 +5,20 @@ from collections import defaultdict
 import numpy as np
 
 cfg_file = "config.yaml"
+
+
 def load_config(cfg_file):
     with open(cfg_file) as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
     return edict(cfg)
+
 
 def read_fasta(file):
     seqs = {}
     with open(file, "r") as f:
         for line in f:
             if line.startswith(">"):
-                header = line.strip().replace(">","")
+                header = line.strip().replace(">", "")
                 id_ = header.split("|")[0]
             else:
                 seq = line.strip()
@@ -24,6 +27,7 @@ def read_fasta(file):
 
 
 class CAI(object):
+
     def __init__(self, codon_freq):
         self.codon_freq = codon_freq
         self.nucs = set(["A", "U", "C", "G"])
@@ -50,7 +54,7 @@ class CAI(object):
         protein_length = len(rna_seq) // 3
 
         rna_seq = rna_seq.upper()
-        rna_seq = rna_seq.replace("T","U")
+        rna_seq = rna_seq.replace("T", "U")
 
         log_cai = 0.
         for index in range(protein_length):
@@ -81,6 +85,24 @@ def read_coding_wheel(fn):
                     codon_table[aa].add(first + second + third)
     return codon_table
 
+
+def read_codon_freq(fn):
+    codon_freq = defaultdict()
+    max_aa_table = defaultdict(lambda: 0)
+    nucs = set(["A", "U", "C", "G"])
+    for index, line in enumerate(open(fn).readlines()):
+        if index == 0:
+            continue
+
+        codon, aa, fraction = line.strip().split(',')
+        for e in codon:
+            assert(e in nucs)
+        codon_freq[codon] = (float(fraction), aa)
+        max_aa_table[aa] = max(max_aa_table[aa], float(fraction))
+
+    return codon_freq, max_aa_table
+
+
 def get_equivalent_codons(codon_table):
     equi_codons = defaultdict(set)
     for aa, codons in codon_table.items():
@@ -89,3 +111,12 @@ def get_equivalent_codons(codon_table):
     return equi_codons
 
 
+def get_equivalent_codons_w_higher_cai(codon_table, codon_freq):
+    equi_codons = defaultdict(set)
+    for aa, codons in codon_table.items():
+        for codon_i in codons:
+            for codon_j in codons:
+                if (codon_freq[codon_j][0] >= codon_freq[codon_i][0] and
+                        codon_i != codon_j):
+                    equi_codons[codon_i].add(codon_j)
+    return equi_codons

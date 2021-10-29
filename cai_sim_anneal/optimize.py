@@ -4,7 +4,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 from utils.utils import read_fasta, cfg_file, load_config, CAI, \
-    read_coding_wheel, get_equivalent_codons
+    read_coding_wheel, read_codon_freq, get_equivalent_codons_w_higher_cai
 import pickle as pkl
 import dill
 import pandas as pd
@@ -249,7 +249,8 @@ def run(args, cfg):
     mfe_seq = seqs["lambda_0"]
 
     codon_table = read_coding_wheel(cfg.DATA.RAW.CODON_TABLE)
-    equi_codons = get_equivalent_codons(codon_table)
+    codon_freq, _ = read_codon_freq(cfg.DATA.RAW.CODON_FREQ)
+    equi_codons = get_equivalent_codons_w_higher_cai(codon_table, codon_freq)
 
     if args.folding == "RNAfold":
         folding_cmd = cfg.BIN.RNAFOLD
