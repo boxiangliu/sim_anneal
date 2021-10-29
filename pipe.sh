@@ -23,3 +23,25 @@ python cai_sim_anneal/optimize.py 1000 30 "results_it-1000_factor-0.001_lamb-30_
 
 python cai_sim_anneal/optimize.py 5000 30 "results_it-5000_factor-0.001_lamb-30_linfold" \
 --objective "min" --factor 0.001 --anneal_schedule "linear" --seed 0 --folding "LinearFold"
+
+
+python cai_sim_anneal/optimize.py 1000 30 "results_it-1000_factor-0.001_lamb-30_linfold_onlyHigherCAI" \
+--objective "min" --factor 0.001 --anneal_schedule "linear" --seed 0 --folding "LinearFold"
+
+
+python cai_sim_anneal/optimize.py 2000 15 "results_it-2000_factor-0.001_lamb-15_linfold_onlyHigherCAI" \
+--objective "min" --factor 0.001 --anneal_schedule "linear" --seed 0 --folding "LinearFold"
+
+
+python cai_sim_anneal/optimize.py 2000 7 "results_it-2000_factor-0.001_lamb-15_linfold_onlyHigherCAI" \
+--objective "min" --factor 0.001 --anneal_schedule "linear" --seed 0 --folding "LinearFold"
+
+
+python cai_sim_anneal/optimize.py 2000 3 "results_it-2000_factor-0.001_lamb-15_linfold_onlyHigherCAI" \
+--objective "min" --factor 0.001 --anneal_schedule "linear" --seed 0 --folding "LinearFold"
+
+
+for lambda in 0.5 1 2 3 4 6 8 10; do
+    sbatch -p TitanXx8_slong,M40x8_slong,1080Ti_slong -o lambda-${lambda}.log --wrap "python cai_sim_anneal/optimize.py 30000 $lambda results_it-30000_factor-0.001_lamb-${lambda}_linfold_onlyHigherCAI --objective min --factor 0.001 --anneal_schedule linear --seed 0 --folding LinearFold"
+done
+

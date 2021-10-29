@@ -173,10 +173,10 @@ class SimAnnealer(object):
                 self.results[i] = {"seq": self.model.rna,
                                    "score": new_score, "CAI": cai,
                                    "MFE": mfe, "lambda": self.lambda_}
-                logging.info(f"ELAPSED: {elapsed}\tOLD: {old_score}\tNEW: {new_score}\tACCEPT: YES\tCAI: {cai}\tMFE: {mfe}")
+                logging.info(f"ITER: {i}\tELAPSED: {elapsed}\tOLD: {old_score}\tNEW: {new_score}\tACCEPT: YES\tCAI: {cai}\tMFE: {mfe}")
             else:
                 self.model.rna = old_seq
-                logging.info(f"ELAPSED: {elapsed}\tOLD: {old_score}\tNEW: {new_score}\tACCEPT: NO\tCAI: {cai}\tMFE: {mfe}")
+                logging.info(f"ITER: {i}\tELAPSED: {elapsed}\tOLD: {old_score}\tNEW: {new_score}\tACCEPT: NO\tCAI: {cai}\tMFE: {mfe}")
 
             T = self.update_temperature(T)
 
