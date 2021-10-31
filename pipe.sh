@@ -1,5 +1,6 @@
 # Random CAI optimization:
-python cai_random/mutate.py
+python cai_random/optimize.py "results_step-0.01_reps-50_org-human" --n_reps 50 --step_size 0.01 --organism human
+python cai_random/optimize.py "results_step-0.01_reps-50_org-yeast" --n_reps 50 --step_size 0.01 --organism yeast
 
 
 # CAI simulated annealing: 

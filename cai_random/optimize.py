@@ -10,6 +10,16 @@ from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
     scale_color_manual, scale_shape_manual, theme, element_blank
 import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("out_file", type=str, help="output file")
+parser.add_argument("--n_reps", type=int,
+                    help="number of replications", default=50)
+parser.add_argument("--step_size", type=float,
+                    help="step size for proportion", default=0.01)
+parser.add_argument("--organism", type=str,
+                    help="organism: yeast or human", default="human")
+
+
 class CAIOptimizer(object):
 
     def __init__(self, mfe_seq, cai_seq):
@@ -76,19 +86,12 @@ class Plotter(object):
         return p
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("out_file", type=str, help="output file")
-parser.add_argument("--n_reps", type=int, help="number of replications", default=50)
-parser.add_argument("--step_size", type=float, help="step size for proportion", default=0.01)
-parser.add_argument("--organism", type=str, help="organism: yeast or human", default="human")
-
 def run(args, cfg):
     # initialize:
     step_size = args.step_size
     n_reps = args.n_reps
     out_file = args.out_file
     organism = args.organism
-
 
     seqs = read_fasta(cfg.DATA.RAW.SPIKE)
     mfe_seq = seqs["lambda_0"]
@@ -131,7 +134,8 @@ def run(args, cfg):
         cai_random, columns=["proportion", "seed", "MFE", "CAI"])
 
     plotter = Plotter(ref_points)
-    plotter.add_points(cai_random, name="Random Optimization", color="red", shape="^")
+    plotter.add_points(cai_random, name="Random Optimization",
+                       color="red", shape="^")
     p = plotter.plot()
     p.save(os.path.join(cfg.DATA.PROCESSED.CAI_RANDOM, "comparison.pdf"))
 
