@@ -94,16 +94,20 @@ def run(args, cfg):
     out_file = args.out_file
     organism = args.organism
 
-    seqs = read_fasta(cfg.DATA.RAW.SPIKE)
-    mfe_seq = seqs["lambda_0"]
-    cai_seq = seqs["lambda_inf"]
-
     if organism == "human":
         codon_freq_file = cfg.DATA.RAW.CODON_FREQ.HUMAN
+        spike_protein_file = cfg.DATA.RAW.SPIKE.HUMAN
+        ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
     elif organism == "yeast":
         codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST
+        spike_protein_file = cfg.DATA.RAW.SPIKE.YEAST
+        ref_p_file = cfg.DATA.RAW.REF_P.YEAST
     else:
         raise ValueError(f"{organism} not implemented!")
+
+    seqs = read_fasta(spike_protein_file)
+    mfe_seq = seqs["lambda_0"]
+    cai_seq = seqs["lambda_inf"]
 
     cai_calc = CAI(codon_freq_file)
 
@@ -123,12 +127,6 @@ def run(args, cfg):
         pkl.dump(results, f)
 
     # make MFE-CAI plot:
-    if organism == "human":
-        ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
-    elif organism == "yeast":
-        ref_p_file = cfg.DATA.RAW.REF_P.YEAST
-    else:
-        raise ValueError(f"{organism} not implemented.")
     ref_points = pd.read_csv(ref_p_file)
     cai_random = [(k[0], k[1], v[1], v[2]) for k, v in results.items()]
     cai_random = pd.DataFrame(
