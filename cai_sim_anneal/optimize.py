@@ -17,7 +17,7 @@ import time
 parser = argparse.ArgumentParser()
 parser.add_argument("iteration", type=int, help="number of iterations to run")
 parser.add_argument("lambd", type=float, help="CAI coefficient")
-parser.add_argument("out_file", type=str, help="path to output file")
+parser.add_argument("out_file", type=str, help="prefix of output file")
 parser.add_argument("--objective", type=str,
                     help="either min or max", default="min")
 parser.add_argument("--factor", type=float,
@@ -29,6 +29,7 @@ parser.add_argument("--alpha", type=float,
 parser.add_argument("--seed", type=int, help="random seed", default=None)
 parser.add_argument("--folding", type=str,
                     help="folding software", default="RNAfold")
+parser.add_argument("--organism", type=str, help="human or yeast", default="human")
 args = parser.parse_args()
 
 
@@ -236,6 +237,7 @@ class Plotter(object):
 
 
 def run(args, cfg):
+    # setup:
     iteration = args.iteration
     lambda_ = args.lambd
     out_file = args.out_file
@@ -244,14 +246,26 @@ def run(args, cfg):
     anneal_schedule = args.anneal_schedule
     alpha = args.alpha
     seed = args.seed
+    organism = args.organism
 
+    # read sequence
     seqs = read_fasta(cfg.DATA.RAW.SPIKE)
     mfe_seq = seqs["lambda_0"]
 
+    # read codon table and frequency
     codon_table = read_coding_wheel(cfg.DATA.RAW.CODON_TABLE)
-    codon_freq, _ = read_codon_freq(cfg.DATA.RAW.CODON_FREQ)
+
+    if organism == "human":
+        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.HUMAN
+    elif organism == "yeast":
+        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST
+    else:
+        raise ValueError(f"{organism} not implemented!")
+
+    codon_freq, _ = read_codon_freq(codon_freq_file)
     equi_codons = get_equivalent_codons_w_higher_cai(codon_table, codon_freq)
 
+    # folding software
     if args.folding == "RNAfold":
         folding_cmd = cfg.BIN.RNAFOLD
     elif args.folding == "LinearFold":
@@ -259,7 +273,8 @@ def run(args, cfg):
     else:
         raise ValueError(f"{args.folding} not implemented yet!")
 
-    model = RNA(mfe_seq, equi_codons, cfg.DATA.RAW.CODON_FREQ,
+    # simulated annealing
+    model = RNA(mfe_seq, equi_codons, codon_freq_file,
                 folding_cmd=folding_cmd)
 
     annealer = SimAnnealer(model, iteration=iteration, lambda_=lambda_, objective=objective,
@@ -270,7 +285,15 @@ def run(args, cfg):
     annealer.save(os.path.join(
         cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".pkl"))
 
-    ref_points = pd.read_csv(cfg.DATA.RAW.REF_P)
+    # make plot
+    if organism == "human":
+        ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
+    elif organism == "yeast":
+        ref_p_file = cfg.DATA.RAW.REF_P.YEAST
+    else:
+        raise ValueError(f"{organism} not implemented.")
+
+    ref_points = pd.read_csv(ref_p_file)
     sim_anneal = [(k, v["MFE"], v["CAI"]) for k, v in annealer.results.items()]
     sim_anneal = pd.DataFrame(
         sim_anneal, columns=["Iteration", "MFE", "CAI"])

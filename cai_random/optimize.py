@@ -8,7 +8,7 @@ from collections import defaultdict
 import pandas as pd
 from plotnine import ggplot, geom_point, geom_line, aes, theme_bw, \
     scale_color_manual, scale_shape_manual, theme, element_blank
-
+import argparse
 
 class CAIOptimizer(object):
 
@@ -76,34 +76,56 @@ class Plotter(object):
         return p
 
 
-def main():
+parser = argparse.ArgumentParser()
+parser.add_argument("out_file", type=str, help="output file")
+parser.add_argument("--n_reps", type=int, help="number of replications", default=50)
+parser.add_argument("--step_size", type=float, help="step size for proportion", default=0.01)
+parser.add_argument("--organism", type=str, help="organism: yeast or human", default="human")
+
+def run(args, cfg):
     # initialize:
-    cfg = load_config(cfg_file)
+    step_size = args.step_size
+    n_reps = args.n_reps
+    out_file = args.out_file
+    organism = args.organism
+
+
     seqs = read_fasta(cfg.DATA.RAW.SPIKE)
     mfe_seq = seqs["lambda_0"]
     cai_seq = seqs["lambda_inf"]
-    cai_calc = CAI(cfg.DATA.RAW.CODON_FREQ)
+
+    if organism == "human":
+        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.HUMAN
+    elif organism == "yeast":
+        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST
+    else:
+        raise ValueError(f"{organism} not implemented!")
+
+    cai_calc = CAI(organism)
 
     # mutate sequence and calculate MFE & CAI:
     optimizer = CAIOptimizer(mfe_seq, cai_seq)
     results = dict()
-    for proportion in tqdm(np.arange(0, 1.001, 0.01)):
-        for seed in np.arange(50):
+    for proportion in tqdm(np.arange(0, 1.001, step_size)):
+        for seed in np.arange(n_reps):
             mut_seq = optimizer.mutate(proportion, seed=seed)
             mfe = optimizer.get_mfe(seq=mut_seq, folding_cmd=cfg.BIN.RNAFOLD)
             cai = cai_calc.get_cai(mut_seq)
             results[(proportion, seed)] = [mut_seq, mfe, cai]
 
     pkl_file = os.path.join(
-        cfg.DATA.PROCESSED.CAI_RANDOM, "mutate_results.pkl")
+        cfg.DATA.PROCESSED.CAI_RANDOM, out_file + ".pkl")
     with open(pkl_file, "wb") as f:
         pkl.dump(results, f)
 
-    with open(pkl_file, "rb") as f:
-        results = pkl.load(f)
-
     # make MFE-CAI plot:
-    ref_points = pd.read_csv(cfg.DATA.RAW.REF_P)
+    if organism == "human":
+        ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
+    elif organism == "yeast":
+        ref_p_file = cfg.DATA.RAW.REF_P.YEAST
+    else:
+        raise ValueError(f"{organism} not implemented.")
+    ref_points = pd.read_csv(ref_p_file)
     cai_random = [(k[0], k[1], v[1], v[2]) for k, v in results.items()]
     cai_random = pd.DataFrame(
         cai_random, columns=["proportion", "seed", "MFE", "CAI"])
@@ -112,6 +134,12 @@ def main():
     plotter.add_points(cai_random, name="Random Optimization", color="red", shape="^")
     p = plotter.plot()
     p.save(os.path.join(cfg.DATA.PROCESSED.CAI_RANDOM, "comparison.pdf"))
+
+
+def main():
+    cfg = load_config(cfg_file)
+    run(args, cfg)
+
 
 if __name__ == "__main__":
     main()
