@@ -105,7 +105,7 @@ def run(args, cfg):
     else:
         raise ValueError(f"{organism} not implemented!")
 
-    cai_calc = CAI(organism)
+    cai_calc = CAI(codon_freq_file)
 
     # mutate sequence and calculate MFE & CAI:
     optimizer = CAIOptimizer(mfe_seq, cai_seq)
