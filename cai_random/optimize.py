@@ -136,7 +136,7 @@ def run(args, cfg):
     plotter.add_points(cai_random, name="Random Optimization",
                        color="red", shape="^")
     p = plotter.plot()
-    p.save(os.path.join(cfg.DATA.PROCESSED.CAI_RANDOM, "comparison.pdf"))
+    p.save(os.path.join(cfg.DATA.PROCESSED.CAI_RANDOM, out_file + ".pdf"))
 
 
 def main():
