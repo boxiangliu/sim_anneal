@@ -1,6 +1,6 @@
 # Random CAI optimization:
 python cai_random/optimize.py "results_step-0.01_reps-50_org-human" --n_reps 50 --step_size 0.01 --organism human
-python cai_random/optimize.py "results_step-0.01_reps-50_org-yeast" --n_reps 1 --step_size 0.1 --organism yeast
+python cai_random/optimize.py "results_step-0.01_reps-25_org-yeast" --n_reps 25 --step_size 0.01 --organism yeast
 
 
 # CAI simulated annealing: 
@@ -46,3 +46,6 @@ for lambda in 0.5 1 2 3 4 6 8 10; do
     sbatch -p TitanXx8_slong,M40x8_slong,1080Ti_slong -o lambda-${lambda}.log --wrap "python cai_sim_anneal/optimize.py 30000 $lambda results_it-30000_factor-0.001_lamb-${lambda}_linfold_onlyHigherCAI --objective min --factor 0.001 --anneal_schedule linear --seed 0 --folding LinearFold"
 done
 
+for lambda in 3.5 4.5 5 5.5 7; do
+    sbatch -p TitanXx8_slong,M40x8_slong,1080Ti_slong -o lambda-${lambda}.log --wrap "python cai_sim_anneal/optimize.py 30000 $lambda results_it-30000_factor-0.001_lamb-${lambda}_linfold_onlyHigherCAI --objective min --factor 0.001 --anneal_schedule linear --seed 0 --folding LinearFold"
+done

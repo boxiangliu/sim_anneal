@@ -248,20 +248,25 @@ def run(args, cfg):
     seed = args.seed
     organism = args.organism
 
+
+    if organism == "human":
+        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.HUMAN
+        spike_protein_file = cfg.DATA.RAW.SPIKE.HUMAN
+        ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
+    elif organism == "yeast":
+        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST
+        spike_protein_file = cfg.DATA.RAW.SPIKE.YEAST
+        ref_p_file = cfg.DATA.RAW.REF_P.YEAST
+    else:
+        raise ValueError(f"{organism} not implemented!")
+
+
     # read sequence
-    seqs = read_fasta(cfg.DATA.RAW.SPIKE)
+    seqs = read_fasta(spike_protein_file)
     mfe_seq = seqs["lambda_0"]
 
     # read codon table and frequency
     codon_table = read_coding_wheel(cfg.DATA.RAW.CODON_TABLE)
-
-    if organism == "human":
-        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.HUMAN
-    elif organism == "yeast":
-        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST
-    else:
-        raise ValueError(f"{organism} not implemented!")
-
     codon_freq, _ = read_codon_freq(codon_freq_file)
     equi_codons = get_equivalent_codons_w_higher_cai(codon_table, codon_freq)
 
@@ -286,13 +291,6 @@ def run(args, cfg):
         cfg.DATA.PROCESSED.CAI_ANNEAL, out_file + ".pkl"))
 
     # make plot
-    if organism == "human":
-        ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
-    elif organism == "yeast":
-        ref_p_file = cfg.DATA.RAW.REF_P.YEAST
-    else:
-        raise ValueError(f"{organism} not implemented.")
-
     ref_points = pd.read_csv(ref_p_file)
     sim_anneal = [(k, v["MFE"], v["CAI"]) for k, v in annealer.results.items()]
     sim_anneal = pd.DataFrame(
