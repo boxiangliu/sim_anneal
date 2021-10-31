@@ -14,24 +14,6 @@ import argparse
 import logging
 import time
 
-parser = argparse.ArgumentParser()
-parser.add_argument("iteration", type=int, help="number of iterations to run")
-parser.add_argument("lambd", type=float, help="CAI coefficient")
-parser.add_argument("out_file", type=str, help="prefix of output file")
-parser.add_argument("--objective", type=str,
-                    help="either min or max", default="min")
-parser.add_argument("--factor", type=float,
-                    help="scaling factor for temperature", default=0.001)
-parser.add_argument("--anneal_schedule", type=str,
-                    help="either linear or geometric", default="linear")
-parser.add_argument("--alpha", type=float,
-                    help="scale factor for temperature update", default=None)
-parser.add_argument("--seed", type=int, help="random seed", default=None)
-parser.add_argument("--folding", type=str,
-                    help="folding software", default="RNAfold")
-parser.add_argument("--organism", type=str, help="human or yeast", default="human")
-args = parser.parse_args()
-
 
 class RNA():
 
@@ -314,6 +296,25 @@ def main():
     # alpha = None
     # seed = 0
     # out_file = "results.pkl"
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("iteration", type=int, help="number of iterations to run")
+    parser.add_argument("lambd", type=float, help="CAI coefficient")
+    parser.add_argument("out_file", type=str, help="prefix of output file")
+    parser.add_argument("--objective", type=str,
+                        help="either min or max", default="min")
+    parser.add_argument("--factor", type=float,
+                        help="scaling factor for temperature", default=0.001)
+    parser.add_argument("--anneal_schedule", type=str,
+                        help="either linear or geometric", default="linear")
+    parser.add_argument("--alpha", type=float,
+                        help="scale factor for temperature update", default=None)
+    parser.add_argument("--seed", type=int, help="random seed", default=None)
+    parser.add_argument("--folding", type=str,
+                        help="folding software", default="RNAfold")
+    parser.add_argument("--organism", type=str, help="human or yeast", default="human")
+    args = parser.parse_args()
+
     cfg = load_config(cfg_file)
     log_file = os.path.join(
         cfg.DATA.PROCESSED.CAI_ANNEAL, args.out_file + ".log")
