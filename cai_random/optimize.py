@@ -18,6 +18,7 @@ parser.add_argument("--step_size", type=float,
                     help="step size for proportion", default=0.01)
 parser.add_argument("--organism", type=str,
                     help="organism: yeast or human", default="human")
+args = parser.parse_args()
 
 
 class CAIOptimizer(object):
