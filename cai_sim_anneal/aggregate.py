@@ -3,12 +3,13 @@ from cai_sim_anneal.optimize import Plotter
 import pandas as pd
 import os
 from utils.utils import cfg_file, load_config
-import argparse 
+import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", type=str, nargs="+", help="input pickle files")
 parser.add_argument("--fig", type=str, help="output figure file")
-parser.add_argument("--organism", type=str, help="human or yeast", default="human")
+parser.add_argument("--organism", type=str,
+                    help="human or yeast", default="human")
 args = parser.parse_args()
 
 # setup:
@@ -22,7 +23,8 @@ else:
 
 ref_points = pd.read_csv(ref_p_file)
 plotter = Plotter(ref_points)
-color = ["orange", "green", "red", "purple", "brown", "pink", "gray", "olive", "cyan", "magenta", "black", "yellow", "teal"]
+color = ["orange", "green", "red", "purple", "brown", "pink",
+         "gray", "olive", "cyan", "magenta", "black", "yellow", "teal"]
 
 
 def extract_lambda_from_filename(filename):

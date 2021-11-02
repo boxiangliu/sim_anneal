@@ -229,19 +229,29 @@ def run(args, cfg):
     alpha = args.alpha
     seed = args.seed
     organism = args.organism
-
+    protein = args.protein
 
     if organism == "human":
+
         codon_freq_file = cfg.DATA.RAW.CODON_FREQ.HUMAN
         spike_protein_file = cfg.DATA.RAW.SPIKE.HUMAN
-        ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
+        ref_p_file = cfg.DATA.RAW.REF_P.SPIKE.HUMAN
+
     elif organism == "yeast":
-        codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST
-        spike_protein_file = cfg.DATA.RAW.SPIKE.YEAST
-        ref_p_file = cfg.DATA.RAW.REF_P.YEAST
+
+        if protein == "spike":
+            codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST
+            spike_protein_file = cfg.DATA.RAW.SPIKE.YEAST
+            ref_p_file = cfg.DATA.RAW.REF_P.SPIKE.YEAST
+        elif protein == "egfp":
+            codon_freq_file = cfg.DATA.RAW.CODON_FREQ.YEAST_CDSFOLD
+            spike_protein_file = cfg.DATA.RAW.EGFP.YEAST
+            ref_p_file = cfg.DATA.RAW.REF_P.EGFP.YEAST
+        else:
+            raise ValueError(f"{protein} not implemented!")
+
     else:
         raise ValueError(f"{organism} not implemented!")
-
 
     # read sequence
     seqs = read_fasta(spike_protein_file)
@@ -298,7 +308,8 @@ def main():
     # out_file = "results.pkl"
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("iteration", type=int, help="number of iterations to run")
+    parser.add_argument("iteration", type=int,
+                        help="number of iterations to run")
     parser.add_argument("lambd", type=float, help="CAI coefficient")
     parser.add_argument("out_file", type=str, help="prefix of output file")
     parser.add_argument("--objective", type=str,
@@ -312,7 +323,8 @@ def main():
     parser.add_argument("--seed", type=int, help="random seed", default=None)
     parser.add_argument("--folding", type=str,
                         help="folding software", default="RNAfold")
-    parser.add_argument("--organism", type=str, help="human or yeast", default="human")
+    parser.add_argument("--organism", type=str,
+                        help="human or yeast", default="human")
     args = parser.parse_args()
 
     cfg = load_config(cfg_file)
