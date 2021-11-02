@@ -298,15 +298,6 @@ def run(args, cfg):
 
 
 def main():
-    # iteration = 50000
-    # lambda_ = 0.5
-    # objective = "min"
-    # factor = 0.001
-    # anneal_schedule = "linear"
-    # alpha = None
-    # seed = 0
-    # out_file = "results.pkl"
-
     parser = argparse.ArgumentParser()
     parser.add_argument("iteration", type=int,
                         help="number of iterations to run")
@@ -325,6 +316,8 @@ def main():
                         help="folding software", default="RNAfold")
     parser.add_argument("--organism", type=str,
                         help="human or yeast", default="human")
+    parser.add_argument("--protein", type=str,
+                        help="protein sequence", default="spike")
     args = parser.parse_args()
 
     cfg = load_config(cfg_file)
