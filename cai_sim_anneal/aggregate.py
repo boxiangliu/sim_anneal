@@ -22,7 +22,7 @@ def extract_lambda_from_filename(filename):
     split_filename = filename.strip().split("_")
     for i in split_filename:
         if i.startswith("lamb"):
-            return float(i.replace("lamb-", ""))
+            return i.replace("lamb-", "")
 
 # load different lambdas:
 
