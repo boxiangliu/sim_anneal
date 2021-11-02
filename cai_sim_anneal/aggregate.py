@@ -33,7 +33,7 @@ for i, pkl_file in enumerate(args.input):
     sim_anneal = pd.DataFrame(
         sim_anneal, columns=["Iteration", "MFE", "CAI"])
 
-    lambda_ = extract_lambda_from_file(pkl_file)
+    lambda_ = extract_lambda_from_filename(pkl_file)
     plotter.add_points(sim_anneal, name=f"lambda: {lambda_}",
                        color=color[i], shape="^")
 
