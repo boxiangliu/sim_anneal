@@ -8,11 +8,18 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", type=str, nargs="+", help="input pickle files")
 parser.add_argument("--fig", type=str, help="output figure file")
+parser.add_argument("--organism", type=str, help="human or yeast", default="human")
 args = parser.parse_args()
 
 # setup:
 cfg = load_config(cfg_file)
-ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
+if args.organism == "human":
+    ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
+elif args.organism == "yeast":
+    ref_p_file = cfg.DATA.RAW.REF_P.YEAST
+else:
+    raise ValueError(f"{args.organism} not implemented yet")
+
 ref_points = pd.read_csv(ref_p_file)
 plotter = Plotter(ref_points)
 color = ["orange", "green", "red", "purple", "brown", "pink", "gray", "olive", "cyan", "magenta", "black", "yellow", "teal"]
