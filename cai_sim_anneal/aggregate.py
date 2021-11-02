@@ -6,7 +6,7 @@ from utils.utils import cfg_file, load_config
 import argparse 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", type=str, help="input pickle files")
+parser.add_argument("--input", type=str, nargs="+", help="input pickle files")
 parser.add_argument("--fig", type=str, help="output figure file")
 args = parser.parse_args()
 
@@ -26,7 +26,7 @@ def extract_lambda_from_filename(filename):
 
 # load different lambdas:
 
-for i, pkl_file in enumerate(args.input.split(" ")):
+for i, pkl_file in enumerate(args.input):
     # pkl_file = os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, f"results_it-30000_factor-0.001_lamb-{lambda_}_linfold_onlyHigherCAI.pkl")
     with open(pkl_file, "rb") as f:
         results = dill.load(f)["results"]
