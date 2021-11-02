@@ -27,6 +27,7 @@ def extract_lambda_from_filename(filename):
 # load different lambdas:
 
 for i, pkl_file in enumerate(args.input):
+    breakpoint()
     # pkl_file = os.path.join(cfg.DATA.PROCESSED.CAI_ANNEAL, f"results_it-30000_factor-0.001_lamb-{lambda_}_linfold_onlyHigherCAI.pkl")
     with open(pkl_file, "rb") as f:
         results = dill.load(f)["results"]
