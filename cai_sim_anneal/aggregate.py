@@ -15,7 +15,7 @@ cfg = load_config(cfg_file)
 ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
 ref_points = pd.read_csv(ref_p_file)
 plotter = Plotter(ref_points)
-color = ["orange", "green", "red", "purple", "brown", "pink", "gray", "olive", "cyan", "magenta", "black", "yellow"]
+color = ["orange", "green", "red", "purple", "brown", "pink", "gray", "olive", "cyan", "magenta", "black", "yellow", "teal"]
 
 
 def extract_lambda_from_filename(filename):
