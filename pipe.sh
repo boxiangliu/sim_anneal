@@ -28,4 +28,4 @@ for lambda in 0.5 0.6 0.7 0.8 0.9 1 1.3 1.5 1.7 2 2.3 2.5 2.7 3 3.5 4 4.5 5 5.5 
 done
 
 python cai_sim_anneal/aggregate.py --input ../data/processed/cai_sim_anneal/egfp_it-20000_factor-0.001_lamb-{0.5,0.6,0.7,0.8,0.9,1,1.3,1.5,1.7,2,2.3,2.5,2.7,3,3.5,4,4.5,5,5.5,6,7,8,10}_linfold_onlyHigherCAI_yeast.pkl \
-    --fig egfp_yeast.pdf --organism yeast
+    --fig egfp_yeast.pdf --organism yeast --protein egfp

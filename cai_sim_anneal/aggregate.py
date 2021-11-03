@@ -34,7 +34,9 @@ else:
 ref_points = pd.read_csv(ref_p_file)
 plotter = Plotter(ref_points)
 color = ["orange", "green", "red", "purple", "brown", "pink",
-         "gray", "olive", "cyan", "magenta", "black", "yellow", "teal"]
+         "gray", "olive", "cyan", "magenta", "black", "yellow", "teal",
+         "chocolate", "salmon", "lightblue", "orchid", "indigo", 
+         "tan", "lime", "navy", "gold", "lavender", "khaki"]
 
 
 def extract_lambda_from_filename(filename):
