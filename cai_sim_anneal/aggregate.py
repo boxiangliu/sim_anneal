@@ -12,6 +12,8 @@ parser.add_argument("--organism", type=str,
                     help="human or yeast", default="human")
 parser.add_argument("--protein", type=str,
                     help="spike or egfp", default="spike")
+parser.add_argument("--cdsfold", type=str,
+                    help="path to cdsfold result", default=None)
 args = parser.parse_args()
 
 # setup:
@@ -58,6 +60,9 @@ for i, pkl_file in enumerate(args.input):
     plotter.add_points(sim_anneal, name=f"lambda: {lambda_}",
                        color=color[i], shape="^")
 
+if args.cdsfold:
+    cdsfold = pd.read_csv(args.cdsfold)
+    plotter.add_points(cdsfold, name="CDSfold", color="blue", shape="s")
 
 # make plot:
 p = plotter.plot_cai_vs_mfe()
