@@ -10,19 +10,23 @@ parser.add_argument("--input", type=str, nargs="+", help="input pickle files")
 parser.add_argument("--fig", type=str, help="output figure file")
 parser.add_argument("--organism", type=str,
                     help="human or yeast", default="human")
+parser.add_argument("--protein", type=str,
+                    help="spike or egfp", default="spike")
 args = parser.parse_args()
 
 # setup:
 cfg = load_config(cfg_file)
 if args.organism == "human":
     ref_p_file = cfg.DATA.RAW.REF_P.SPIKE.HUMAN
+
 elif args.organism == "yeast":
-    if protein == "spike":
+
+    if args.protein == "spike":
         ref_p_file = cfg.DATA.RAW.REF_P.SPIKE.YEAST
-    elif protein == "egfp":
+    elif args.protein == "egfp":
         ref_p_file = cfg.DATA.RAW.REF_P.EGFP.YEAST
     else:
-        raise ValueError(f"{protein} not implemented yet")
+        raise ValueError(f"{args.protein} not implemented yet")
 
 else:
     raise ValueError(f"{args.organism} not implemented yet")
