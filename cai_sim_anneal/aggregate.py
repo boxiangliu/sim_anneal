@@ -15,9 +15,15 @@ args = parser.parse_args()
 # setup:
 cfg = load_config(cfg_file)
 if args.organism == "human":
-    ref_p_file = cfg.DATA.RAW.REF_P.HUMAN
+    ref_p_file = cfg.DATA.RAW.REF_P.SPIKE.HUMAN
 elif args.organism == "yeast":
-    ref_p_file = cfg.DATA.RAW.REF_P.YEAST
+    if protein == "spike":
+        ref_p_file = cfg.DATA.RAW.REF_P.SPIKE.YEAST
+    elif protein == "egfp":
+        ref_p_file = cfg.DATA.RAW.REF_P.EGFP.YEAST
+    else:
+        raise ValueError(f"{protein} not implemented yet")
+
 else:
     raise ValueError(f"{args.organism} not implemented yet")
 
